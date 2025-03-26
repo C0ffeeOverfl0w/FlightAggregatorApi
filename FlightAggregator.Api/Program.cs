@@ -1,7 +1,12 @@
 ﻿var builder = WebApplication.CreateBuilder(args);
 
-// Регистрируем сервисы приложения
+Console.WriteLine("ENV: " + builder.Environment.EnvironmentName);
+Console.WriteLine("ProviderA: " + builder.Configuration["FlightProviders:ProviderA:BaseUrl"]);
+Console.WriteLine("ProviderB: " + builder.Configuration["FlightProviders:ProviderB:BaseUrl"]);
+
 builder.Services.AddApplicationServices();
+
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // Регистрируем контроллеры
 builder.Services.AddControllers();

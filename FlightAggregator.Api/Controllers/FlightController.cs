@@ -41,7 +41,10 @@ public class FlightController : ControllerBase
 
         try
         {
-            var query = new SearchFlightsQuery(departureDate, airline, maxPrice, maxStops);
+            var query = new SearchFlightsQuery(
+                FlightNumber: null, DepartureDate: departureDate, Airline: airline, MaxPrice: maxPrice,
+                MaxStops: maxStops, SortBy: null, SortOrder: null, PageNumber: 1, PageSize: 10);
+
             IEnumerable<FlightDto> flights = await _mediator.Send(query, cancellationToken);
             var flightsList = flights.ToList();
 

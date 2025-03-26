@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FlightAggregator.Application\FlightAggregator.Application.csproj" />
+    <ProjectReference Include="..\FlightAggregator.Infrastructure\FlightAggregator.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
