@@ -3,6 +3,7 @@ global using FlightAggregator.Application.Features.Flights.Queries;
 global using FlightAggregator.Infrastructure.Extensions;
 global using FlightAggregator.Application.Extensions;
 global using FlightAggregator.Application.DTOs;
+global using FlightAggregator.Api.Middleware;
 global using Microsoft.OpenApi.Models;
 global using Microsoft.AspNetCore.Mvc;
 global using FluentValidation;

@@ -14,6 +14,7 @@ public static class InfrastructureServiceCollectionExtensions
     /// <exception cref="ArgumentNullException">Выбрасывается, если базовый URL для провайдеров не настроен.</exception>
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddMemoryCache();
         var baseUrlA = configuration["FlightProviders:ProviderA:BaseUrl"];
         var baseUrlB = configuration["FlightProviders:ProviderB:BaseUrl"];
 
@@ -57,11 +58,18 @@ public static class InfrastructureServiceCollectionExtensions
         });
 
         // Регистрирация композитного провайдера
-        services.AddScoped<IFlightProvider>(sp =>
+        services.AddScoped<CompositeFlightProvider>(sp =>
         {
             var providerA = sp.GetRequiredService<FakeFlightProviderA>();
             var providerB = sp.GetRequiredService<FakeFlightProviderB>();
             return new CompositeFlightProvider([providerA, providerB]);
+        });
+
+        services.AddScoped<IFlightProvider>(sp =>
+        {
+            var composite = sp.GetRequiredService<CompositeFlightProvider>();
+            var cache = sp.GetRequiredService<IMemoryCache>();
+            return new CachingFlightProvider(composite, cache);
         });
 
         services.AddSingleton<IBookingRepository, InMemoryBookingRepository>();

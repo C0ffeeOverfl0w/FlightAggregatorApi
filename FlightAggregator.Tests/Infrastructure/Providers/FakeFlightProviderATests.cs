@@ -8,8 +8,20 @@ public class FakeFlightProviderATests
         // Arrange
         var testHandler = new TestHttpMessageHandler(() =>
         {
-            // Возвращаем желаемый JSON-ответ для теста
-            return "[ { \"FlightNumber\": \"AB123\" } ]";
+            return "[ { " +
+                   "\"Id\": \"1\", " +
+                   "\"Airline\": \"Test Airline\", " +
+                   "\"FlightNumber\": \"AB123\", " +
+                   "\"Origin\": \"Москва\", " +
+                   "\"Destination\": \"Санкт-Петербург\", " +
+                   "\"DepartureTime\": \"2025-06-01T10:00:00Z\", " +
+                   "\"ArrivalTime\": \"2025-06-01T12:00:00Z\", " +
+                   "\"DurationMinutes\": 120, " +
+                   "\"Price\": 100, " +
+                   "\"Stops\": 0, " +
+                   "\"StopDetails\": [], " +
+                   "\"Source\": \"source1\"" +
+                   " } ]";
         });
 
         // Создаем политику retry: 3 попытки с короткой задержкой (10 мс)

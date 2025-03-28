@@ -2,74 +2,86 @@
 
 public class SearchFlightsQueryHandlerTests
 {
+    private readonly Mock<IFlightProvider> _flightProviderMock;
+    private readonly Mock<IValidator<SearchFlightsQuery>> _validatorMock;
+    private readonly SearchFlightsQueryHandler _handler;
+
+    public SearchFlightsQueryHandlerTests()
+    {
+        _flightProviderMock = new Mock<IFlightProvider>();
+        _validatorMock = new Mock<IValidator<SearchFlightsQuery>>();
+        _handler = new SearchFlightsQueryHandler(_flightProviderMock.Object, _validatorMock.Object);
+    }
+
     [Fact]
-    public async Task Handle_ReturnsExpectedFlightsList_WithCompositeProvider()
+    public async Task Handle_ReturnsSortedFlightsByPriceAscending()
     {
         // Arrange
-        var departureDate = new DateTime(2023, 12, 25);
-        var query = new SearchFlightsQuery(
-            FlightNumber: "2525",
-            DepartureDate: departureDate,
-            Airline: "Test Airline",
-            MaxPrice: 150,
-            MaxStops: 1,
-            SortBy: null,
-            SortOrder: null,
+        var query = new SearchFlightsQuery
+        (
+            FlightNumber: null,
+            Origin: "Origin",
+            Destination: "Destination",
+            DepartureTime: null,
+            ArrivalTime: null,
+            Airline: null,
+            MaxPrice: null,
+            MaxStops: null,
+            Passengers: 1,
+            SortBy: "price",
+            SortOrder: "asc",
             PageNumber: 1,
             PageSize: 10
         );
-
-        // Мок провайдера A, который вернёт 2 рейса
-        var providerAMock = new Mock<IFlightProvider>();
-        providerAMock
-            .Setup(p => p.GetFlightsAsync(
-                query.FlightNumber,
-                query.DepartureDate,
-                query.Airline,
-                query.MaxPrice,
-                query.MaxStops,
-                query.PageNumber,
-                query.PageSize,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Flight>
-            {
-            new Flight("2525", departureDate, new Airline(Guid.NewGuid(), "Test Airline"), new Money(100, "USD"), 0),
-            new Flight("2526", departureDate, new Airline(Guid.NewGuid(), "Test Airline"), new Money(120, "USD"), 1)
-            });
-
-        // Мок провайдера B, возвращающий пустой список
-        var providerBMock = new Mock<IFlightProvider>();
-        providerBMock
-            .Setup(p => p.GetFlightsAsync(
-                query.FlightNumber,
-                query.DepartureDate,
-                query.Airline,
-                query.MaxPrice,
-                query.MaxStops,
-                query.PageNumber,
-                query.PageSize,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Flight>());
-
-        // Композитный провайдер объединяет данные от обоих провайдеров
-        var compositeProvider = new CompositeFlightProvider([providerAMock.Object, providerBMock.Object]);
-
-        // Создаем мок валидатора
-        var validatorMock = new Mock<IValidator<SearchFlightsQuery>>();
-
-        // Инжектируем композитный провайдер и валидатор в обработчик
-        var handler = new SearchFlightsQueryHandler(compositeProvider, validatorMock.Object);
+        var flights = new List<Flight>
+        {
+            new Flight("1", "FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(Guid.NewGuid(), "Airline1"), new Money(100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
+            new Flight("2", "FN124", DateTime.Now, DateTime.Now.AddHours(3), 180, new Airline(Guid.NewGuid(), "Airline2"), new Money(200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
+        };
+        _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<decimal?>(), It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(flights);
 
         // Act
-        var result = await handler.Handle(query, CancellationToken.None);
+        var result = await _handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        var flights = result.ToList();
-        Assert.Equal(2, flights.Count);
-        foreach (var flight in flights)
+        Assert.Equal(2, result.Count());
+        Assert.Equal(100, result.First().Price);
+        Assert.Equal(200, result.Last().Price);
+    }
+
+    [Fact]
+    public async Task Handle_ReturnsSortedFlightsByDateDescending()
+    {
+        // Arrange
+        var query = new SearchFlightsQuery
+        (
+            FlightNumber: null,
+            Origin: "Origin",
+            Destination: "Destination",
+            DepartureTime: null,
+            ArrivalTime: null,
+            Airline: null,
+            MaxPrice: null,
+            MaxStops: null,
+            Passengers: 1,
+            SortBy: "date",
+            SortOrder: "desc",
+            PageNumber: 1,
+            PageSize: 10
+        );
+        var flights = new List<Flight>
         {
-            Assert.Equal(departureDate, flight.DepartureDate);
-        }
+            new Flight("1", "FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(Guid.NewGuid(), "Airline1"), new Money (100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
+            new Flight("2", "FN124", DateTime.Now.AddHours(1), DateTime.Now.AddHours(3), 180, new Airline(Guid.NewGuid(), "Airline2"), new Money (200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
+        };
+        _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<decimal?>(), It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(flights);
+
+        // Act
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(2, result.Count());
+        Assert.Equal("FN124", result.First().FlightNumber);
+        Assert.Equal("FN123", result.Last().FlightNumber);
     }
 }

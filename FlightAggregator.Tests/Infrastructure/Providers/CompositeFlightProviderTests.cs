@@ -1,58 +1,66 @@
-﻿namespace FlightAggregator.Tests.Infrastructure.Providers;
+﻿using static FlightAggregator.Application.Interfaces.IFlightProvider;
+
+namespace FlightAggregator.Tests.Infrastructure.Providers;
 
 public class CompositeFlightProviderTests
 {
+    private readonly Mock<IFlightProvider> _providerMock1;
+    private readonly Mock<IFlightProvider> _providerMock2;
+    private readonly CompositeFlightProvider _compositeFlightProvider;
+
+    public CompositeFlightProviderTests()
+    {
+        _providerMock1 = new Mock<IFlightProvider>();
+        _providerMock2 = new Mock<IFlightProvider>();
+        var providers = new List<IFlightProvider> { _providerMock1.Object, _providerMock2.Object };
+        _compositeFlightProvider = new CompositeFlightProvider(providers);
+    }
+
     [Fact]
-    public async Task GetFlightsAsync_AggregatesResultsFromAllProviders_ReturnsUnifiedData()
+    public async Task GetFlightsAsync_ReturnsCombinedResults()
     {
         // Arrange
-        var testHandlerA = new TestHttpMessageHandler(() =>
-        {
-            return "[ { \"FlightNumber\": \"AB123\", \"DepartureDate\": \"2025-05-01T10:00:00Z\", \"AirlineName\": \"Fake Airline A\", \"Price\": 150, \"Stops\": 0 } ]";
-        });
+        var flight1 = new Flight("1", "FL123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(Guid.NewGuid(), "Airline1"), new Money(100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin1", "Destination1", "Source1");
+        var flight2 = new Flight("2", "FL456", DateTime.Now, DateTime.Now.AddHours(3), 180, new Airline(Guid.NewGuid(), "Airline2"), new Money(200, "USD"), 1, new List<Flight.StopDetailData>(), "Origin2", "Destination2", "Source2");
 
-        var testHandlerB = new TestHttpMessageHandler(() =>
-        {
-            return "[ { \"FlightId\": \"CD456\", \"DepDate\": \"2025-05-01T12:00:00Z\", \"Airline\": \"Fake Airline B\", \"Cost\": 200, \"Connections\": 1 } ]";
-        });
+        _providerMock1.Setup(p => p.GetFlightsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<decimal?>(), It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(new List<Flight> { flight1 });
 
-        var httpClientA = new HttpClient(testHandlerA)
-        {
-            BaseAddress = new Uri("https://fake-flight-provider-a.wiremockapi.cloud")
-        };
-        var httpClientB = new HttpClient(testHandlerB)
-        {
-            BaseAddress = new Uri("https://fake-flight-provider-b.wiremockapi.cloud")
-        };
-
-        var providerA = new FakeFlightProviderA(httpClientA);
-        var providerB = new FakeFlightProviderB(httpClientB);
-
-        var compositeProvider = new CompositeFlightProvider([providerA, providerB]);
+        _providerMock2.Setup(p => p.GetFlightsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<decimal?>(), It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(new List<Flight> { flight2 });
 
         // Act
-        var flights = await compositeProvider.GetFlightsAsync(
-            flightNumber: null,
-            departureDate: null,
-            airline: null,
-            maxPrice: null,
-            maxStops: null,
-            pageNumber: 1,
-            pageSize: 10,
-            CancellationToken.None);
-        var flightList = flights.ToList();
+        var result = await _compositeFlightProvider.GetFlightsAsync(null, "Origin", "Destination", null, null, null, null, null, 1, 1, 1, CancellationToken.None);
 
         // Assert
-        Assert.Equal(2, flightList.Count);
+        Assert.Contains(flight1, result);
+        Assert.Contains(flight2, result);
+    }
 
-        var flightA = flightList.FirstOrDefault(f => f.FlightNumber == "AB123");
-        Assert.NotNull(flightA);
-        Assert.Equal("Fake Airline A", flightA.Airline.Name);
-        Assert.Equal(150, flightA.Price.Amount);
+    [Fact]
+    public async Task BookFlightAsync_ReturnsBookingResponse()
+    {
+        // Arrange
+        var bookingRequest = new BookingRequest("FL123", "John Doe");
+        var bookingResponse = new BookingResponse("1", "FL123", "John Doe", DateTime.Now, true, "Success");
 
-        var flightB = flightList.FirstOrDefault(f => f.FlightNumber == "CD456");
-        Assert.NotNull(flightB);
-        Assert.Equal("Fake Airline B", flightB.Airline.Name);
-        Assert.Equal(200, flightB.Price.Amount);
+        _providerMock1.Setup(p => p.GetFlightsAsync(It.IsAny<string>(), null, null, null, null, null, null, null, 1, 1, 1, It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(new List<Flight> { new Flight("1", "FL123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(Guid.NewGuid(), "Airline1"), new Money(100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin1", "Destination1", "Source1") });
+
+        _providerMock1.Setup(p => p.BookFlightAsync(bookingRequest, It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(bookingResponse);
+
+        // Act
+        var result = await _compositeFlightProvider.BookFlightAsync(bookingRequest, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(bookingResponse, result);
+    }
+
+    [Fact]
+    public async Task CancelBookingAsync_ThrowsNotImplementedException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<NotImplementedException>(() => _compositeFlightProvider.CancelBookingAsync("1", CancellationToken.None));
     }
 }

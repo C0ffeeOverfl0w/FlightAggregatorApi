@@ -1,9 +1,10 @@
 ﻿global using FlightAggregator.Application.Features.Flights.Queries;
 global using FlightAggregator.Infrastructure.Providers;
+global using FlightAggregator.Infrastructure.Caching;
 global using FlightAggregator.Application.Interfaces;
 global using FlightAggregator.Application.Behaviors;
-global using FlightAggregator.Tests.TestUtilities;
 global using FlightAggregator.Domain.ValueObjects;
+global using Microsoft.Extensions.Caching.Memory;
 global using FlightAggregator.Domain.Entities;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Http;

@@ -1,10 +1,7 @@
-﻿using FlightAggregator.Api.Middleware;
+﻿var builder = WebApplication.CreateBuilder(args);
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Настройка Serilog
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information() // Минимальный уровень логирования
+    .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console(
@@ -17,10 +14,18 @@ builder.Services.AddApplicationServices();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// Регистрируем контроллеры
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers();
 
-// Регистрируем Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -38,7 +43,6 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
-    // Используем Swagger и Swagger UI в режиме разработки
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -64,5 +68,3 @@ finally
 {
     Log.CloseAndFlush();
 }
-
-app.Run();
