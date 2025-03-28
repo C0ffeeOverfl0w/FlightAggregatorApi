@@ -126,9 +126,39 @@ public abstract class BaseFakeFlightProvider(HttpClient httpClient) : IFlightPro
         }
     }
 
-    public Task<BookingResponse> CancelBookingAsync(string bookingId, CancellationToken cancellationToken)
+    public async Task<BookingResponse> CancelBookingAsync(string bookingId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        try
+        {
+            // Формируем URL для отмены бронирования, передавая bookingId в query string
+            var url = $"/cancelBooking?bookingId={Uri.EscapeDataString(bookingId)}";
+
+            // Выполняем HTTP-запрос для отмены бронирования (POST без тела запроса)
+            var response = await HttpClient.PostAsync(url, content: null, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            // При успешном запросе создаём ответ с успешным статусом.
+            return new BookingResponse(
+                BookingId: bookingId,
+                FlightNumber: string.Empty, // Если информация о рейсе отсутствует
+                PassengerName: string.Empty, // Если информация о пассажире отсутствует
+                BookingDate: DateTime.UtcNow,
+                IsSuccess: true,
+                Message: "Отмена бронирования успешна."
+            );
+        }
+        catch (Exception ex)
+        {
+            // В случае ошибки возвращаем ответ с информацией об ошибке
+            return new BookingResponse(
+                BookingId: null,
+                FlightNumber: string.Empty,
+                PassengerName: string.Empty,
+                BookingDate: null,
+                IsSuccess: false,
+                Message: $"Ошибка отмены бронирования: {ex.Message}"
+            );
+        }
     }
 
     private sealed record FlightData(
