@@ -1,7 +1,5 @@
 ﻿namespace FlightAggregator.Domain.Services;
 
-using FlightAggregator.Domain.Entities;
-
 public sealed class BookingDomainService
 {
     /// <summary>
@@ -13,7 +11,14 @@ public sealed class BookingDomainService
     /// <returns>Созданное бронирование.</returns>
     /// <exception cref="InvalidOperationException">Если рейс уже прошел.</exception>
     public Booking CreateBooking(Flight flight, string passengerName, string passengerEmail)
-        => flight.DepartureDate < DateTime.UtcNow
-            ? throw new InvalidOperationException("Нельзя забронировать рейс, который уже прошел.")
-            : new Booking(flight, passengerName, passengerEmail);
+    {
+        if (flight.DepartureTime < DateTime.UtcNow)
+        {
+            throw new InvalidOperationException("Нельзя забронировать рейс, который уже прошел.");
+        }
+
+        var booking = new Booking(flight, passengerName, passengerEmail);
+
+        return booking;
+    }
 }

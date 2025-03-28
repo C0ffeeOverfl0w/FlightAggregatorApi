@@ -30,4 +30,33 @@ public sealed class BookingController : ControllerBase
         _logger.LogInformation("Бронирование успешно создано для рейса: {FlightNumber}", request.FlightNumber);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Отмена бронирования по его идентификатору.
+    /// </summary>
+    /// <param name="bookingId">Идентификатор бронирования.</param>
+    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    /// <returns>Результат отмены бронирования.</returns>
+    [HttpDelete("{bookingId}")]
+    [ProducesResponseType(typeof(BookingResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CancelBooking(string bookingId, CancellationToken cancellationToken)
+    {
+        var requestId = Guid.NewGuid().ToString();
+        _logger.LogInformation("Получен запрос на отмену бронирования с ID {BookingId} и RequestId {RequestId}", bookingId, requestId);
+
+        var command = new CancelBookingCommand(bookingId);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Не удалось отменить бронирование с ID {BookingId} для RequestId {RequestId}: {Message}",
+                bookingId, requestId, result.Message);
+            return BadRequest(result.Message);
+        }
+
+        _logger.LogInformation("Бронирование с ID {BookingId} успешно отменено для RequestId {RequestId}", bookingId, requestId);
+        return Ok(result);
+    }
 }

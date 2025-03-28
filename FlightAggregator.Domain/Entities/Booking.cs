@@ -36,4 +36,19 @@ public class Booking(Flight flight, string passengerName, string passengerEmail)
     /// Дата бронирования.
     /// </summary>
     public DateTime BookingDate { get; } = DateTime.UtcNow;
+
+    public BookingStatus Status { get; private set; } = BookingStatus.Active;
+
+    public void Cancel()
+    {
+        if (Status == BookingStatus.Cancelled)
+            throw new InvalidOperationException("Бронирование уже отменено.");
+        Status = BookingStatus.Cancelled;
+    }
+
+    public enum BookingStatus
+    {
+        Active,
+        Cancelled
+    }
 }

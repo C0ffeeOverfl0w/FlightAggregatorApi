@@ -1,8 +1,17 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using FlightAggregator.Api.Middleware;
 
-Console.WriteLine("ENV: " + builder.Environment.EnvironmentName);
-Console.WriteLine("ProviderA: " + builder.Configuration["FlightProviders:ProviderA:BaseUrl"]);
-Console.WriteLine("ProviderB: " + builder.Configuration["FlightProviders:ProviderB:BaseUrl"]);
+var builder = WebApplication.CreateBuilder(args);
+
+// Настройка Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information() // Минимальный уровень логирования
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} (Thread: {ThreadId}) {NewLine}{Exception}")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddApplicationServices();
 
@@ -25,11 +34,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Глобальная обработка ошибок (опционально)
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/error");
-}
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -43,7 +48,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Маппинг контроллеров
 app.MapControllers();
+
+try
+{
+    Log.Information("Запуск приложения...");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Приложение завершилось с ошибкой при запуске");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 app.Run();

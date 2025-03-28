@@ -6,10 +6,14 @@
 /// </summary>
 public record SearchFlightsQuery(
     string? FlightNumber,
-    DateTime? DepartureDate,
+    string Origin,
+    string Destination,
+    DateTime? DepartureTime,
+    DateTime? ArrivalTime,
     string? Airline,
     decimal? MaxPrice,
     int? MaxStops,
+    int Passengers,
     string? SortBy,
     string? SortOrder,
     int PageNumber = 1,

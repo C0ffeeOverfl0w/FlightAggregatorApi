@@ -1,6 +1,12 @@
-﻿global using System.Reflection;
+﻿global using FlightAggregator.Application.Features.Flights.Queries;
 global using Microsoft.Extensions.DependencyInjection;
-global using MediatR;
+global using FlightAggregator.Application.Interfaces;
+global using FlightAggregator.Domain.Interfaces;
 global using FlightAggregator.Application.DTOs;
 global using FlightAggregator.Domain.Entities;
-global using FlightAggregator.Application.Interfaces;
+global using FlightAggregator.Domain.Services;
+global using Microsoft.Extensions.Logging;
+global using System.Diagnostics;
+global using System.Reflection;
+global using FluentValidation;
+global using MediatR;

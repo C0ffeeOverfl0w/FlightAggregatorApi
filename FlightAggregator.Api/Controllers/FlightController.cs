@@ -16,47 +16,61 @@ public class FlightController : ControllerBase
     /// <summary>
     /// Поиск авиарейсов по заданным критериям.
     /// </summary>
-    /// <param name="departureDate">Дата вылета.</param>
-    /// <param name="airline">Авиакомпания (опционально).</param>
-    /// <param name="maxPrice">Максимальная цена (опционально).</param>
-    /// <param name="maxStops">Максимальное количество пересадок (опционально).</param>
-    /// <param name="cancellationToken">Токен отмены запроса.</param>
+    /// <param name="origin">Город вылета (обязательный).</param>
+    /// <param name="destination">Город прилёта (обязательный).</param>
+    /// <param name="departureDate">Дата вылета (обязательная).</param>
+    /// <param name="returnDate">Дата возвращения (необязательная).</param>
+    /// <param name="airline">Авиакомпания (необязательно).</param>
+    /// <param name="maxPrice">Максимальная цена (необязательно).</param>
+    /// <param name="maxStops">Максимальное количество пересадок (необязательно).</param>
+    /// <param name="passengers">Количество пассажиров (необязательно, по умолчанию 1).</param>
+    /// <param name="sortBy">Поле для сортировки (например, price или date).</param>
+    /// <param name="sortOrder">Порядок сортировки (asc или desc).</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Список найденных рейсов.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<FlightDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetFlights(
-        [FromQuery] DateTime departureDate,
+        [FromQuery] string origin,
+        [FromQuery] string destination,
+        [FromQuery] DateTime departureTime,
+        [FromQuery] DateTime? arrivalTime,
         [FromQuery] string? airline,
         [FromQuery] decimal? maxPrice,
         [FromQuery] int? maxStops,
-        CancellationToken cancellationToken)
+        [FromQuery] int passengers = 1,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortOrder = null,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
-        if (departureDate == default)
-        {
-            _logger.LogWarning("Неверная дата вылета.");
-            return BadRequest("Необходимо указать корректную дату вылета.");
-        }
+        var query = new SearchFlightsQuery(
+            FlightNumber: null,
+            Origin: origin,
+            Destination: destination,
+            DepartureTime: departureTime,
+            ArrivalTime: arrivalTime,
+            Airline: airline,
+            MaxPrice: maxPrice,
+            MaxStops: maxStops,
+            Passengers: passengers,
+            SortBy: sortBy,
+            SortOrder: sortOrder,
+            PageNumber: pageNumber,
+            PageSize: pageSize
+        );
 
-        try
-        {
-            var query = new SearchFlightsQuery(
-                FlightNumber: null, DepartureDate: departureDate, Airline: airline, MaxPrice: maxPrice,
-                MaxStops: maxStops, SortBy: null, SortOrder: null, PageNumber: 1, PageSize: 10);
+        var flights = await _mediator.Send(query, cancellationToken);
+        var flightsList = flights.ToList();
 
-            IEnumerable<FlightDto> flights = await _mediator.Send(query, cancellationToken);
-            var flightsList = flights.ToList();
+        _logger.LogInformation(
+            "Найдено {Count} авиарейсов из {Origin} в {Destination} на {DepartureDate} (return={ReturnDate}), airline={Airline}, maxPrice={MaxPrice}, maxStops={MaxStops}, passengers={Passengers}",
+            flightsList.Count, origin, destination, departureTime, arrivalTime, airline, maxPrice, maxStops, passengers
+        );
 
-            _logger.LogInformation("Найдено {Count} авиарейсов для даты {DepartureDate} с: airline={Airline}, maxPrice={MaxPrice}, maxStops={MaxStops}",
-                flightsList.Count, departureDate, airline, maxPrice, maxStops);
-
-            return Ok(flightsList);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Ошибка при поиске авиарейсов");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Ошибка при поиске авиарейсов");
-        }
+        return Ok(flightsList);
     }
 }

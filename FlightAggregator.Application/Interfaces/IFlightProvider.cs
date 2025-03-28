@@ -20,11 +20,45 @@ public interface IFlightProvider
     /// <returns>Список рейсов.</returns>
     Task<IEnumerable<Flight>> GetFlightsAsync(
         string? flightNumber,
+        string origin,
+        string destination,
         DateTime? departureDate,
+        DateTime? returnDate,
         string? airline,
         decimal? maxPrice,
         int? maxStops,
+        int passengers,
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Бронирует рейс.
+    /// </summary>
+    /// <param name="request">Запрос на бронирование, содержащий номер рейса и имя пассажира.</param>
+    /// <param name="cancellationToken">Токен отмены для отмены операции.</param>
+    /// <returns>Ответ на запрос бронирования, содержащий идентификатор бронирования, результат и сообщение.</returns>
+    Task<BookingResponse> BookFlightAsync(BookingRequest request, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Отменяет бронирование.
+    /// </summary>
+    /// <param name="bookingId">Идентификатор брони</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Ответ на отмену</returns>
+    Task<BookingResponse> CancelBookingAsync(string bookingId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Запрос на бронирование рейса.
+    /// </summary>
+    /// <param name="FlightNumber">Номер рейса.</param>
+    /// <param name="PassengerName">Имя пассажира.</param>
+    public record BookingRequest(string FlightNumber, string PassengerName);
+    /// <summary>
+    /// Ответ на запрос бронирования рейса.
+    /// </summary>
+    /// <param name="BookingId">Идентификатор бронирования.</param>
+    /// <param name="IsSuccess">Успешность бронирования.</param>
+    /// <param name="Message">Сообщение о результате бронирования.</param>
+    public record BookingResponse(string? BookingId, string FlightNumber, string PassengerName, DateTime? BookingDate, bool IsSuccess, string? Message);
 }
