@@ -1,69 +1,95 @@
-﻿namespace FlightAggregator.Domain.Entities;
-
-public class Flight(string id,
-                    string flightNumber,
-                    DateTime departureTime,
-                    DateTime arrivalTime,
-                    int durationMinutes,
-                    Airline airline,
-                    Money price,
-                    int stops,
-                    List<Flight.StopDetailData> stopDetails,
-                    string origin,
-                    string destination,
-                    string source)
+﻿namespace FlightAggregator.Domain.Entities
 {
-    public string Id { get; } = Guid.NewGuid().ToString();
+    public class Flight
+    {
+        public string Id { get; private set; }
+        public string FlightNumber { get; private set; }
+        public DateTime DepartureTime { get; private set; }
+        public DateTime ArrivalTime { get; private set; }
+        public int DurationMinutes { get; private set; }
+        public Airline Airline { get; private set; }
+        public Money Price { get; private set; }
+        public int Stops { get; private set; }
+        public List<StopDetailData> StopDetails { get; private set; }
+        public string Origin { get; private set; }
+        public string Destination { get; private set; }
+        public string Source { get; private set; }
 
-    public string FlightNumber { get; } =
-        string.IsNullOrWhiteSpace(flightNumber)
-            ? throw new ArgumentException("Номер рейса не может быть пустым.", nameof(flightNumber))
-            : flightNumber;
+        protected Flight()
+        {
+        }
 
-    public DateTime DepartureTime { get; } =
-        departureTime < DateTime.UtcNow
-            ? throw new ArgumentException("Дата вылета не может быть в прошлом.", nameof(departureTime))
-            : departureTime;
+        public Flight(
+            string flightNumber,
+            DateTime departureTime,
+            DateTime arrivalTime,
+            int durationMinutes,
+            Airline airline,
+            Money price,
+            int stops,
+            List<StopDetailData> stopDetails,
+            string origin,
+            string destination,
+            string source
+        )
+        {
+            Id = Guid.NewGuid().ToString(); // Или можно передавать извне, или генерировать в БД
+            FlightNumber = string.IsNullOrWhiteSpace(flightNumber)
+                ? throw new ArgumentException("Номер рейса не может быть пустым.", nameof(flightNumber))
+                : flightNumber;
 
-    public DateTime ArrivalTime { get; } =
-        arrivalTime < departureTime
-            ? throw new ArgumentException("Дата прилета не может быть раньше даты вылета.", nameof(arrivalTime))
-            : arrivalTime;
+            if (departureTime < DateTime.UtcNow)
+                throw new ArgumentException("Дата вылета не может быть в прошлом.", nameof(departureTime));
+            DepartureTime = departureTime;
 
-    public int DurationMinutes { get; } =
-        durationMinutes < 0
-            ? throw new ArgumentException("Длительность рейса не может быть отрицательной.", nameof(durationMinutes))
-            : durationMinutes;
+            if (arrivalTime < departureTime)
+                throw new ArgumentException("Дата прилета не может быть раньше даты вылета.", nameof(arrivalTime));
+            ArrivalTime = arrivalTime;
 
-    public Airline Airline { get; } =
-        airline ?? throw new ArgumentNullException(nameof(airline));
+            if (durationMinutes < 0)
+                throw new ArgumentException("Длительность рейса не может быть отрицательной.", nameof(durationMinutes));
+            DurationMinutes = durationMinutes;
 
-    public Money Price { get; } =
-        price.Amount < 0
-            ? throw new ArgumentException("Цена не может быть отрицательной.", nameof(price))
-            : price;
+            Airline = airline ?? throw new ArgumentNullException(nameof(airline));
 
-    public int Stops { get; } =
-        stops < 0
-            ? throw new ArgumentException("Количество пересадок не может быть отрицательным.", nameof(stops))
-            : stops;
+            if (price.Amount < 0)
+                throw new ArgumentException("Цена не может быть отрицательной.", nameof(price));
+            Price = price;
 
-    public List<Flight.StopDetailData> StopDetails { get; } = stopDetails ?? new List<Flight.StopDetailData>();
+            if (stops < 0)
+                throw new ArgumentException("Количество пересадок не может быть отрицательным.", nameof(stops));
+            Stops = stops;
 
-    public string Origin { get; } =
-        string.IsNullOrWhiteSpace(origin)
-            ? throw new ArgumentException("Пункт отправления не может быть пустым.", nameof(origin))
-            : origin;
+            StopDetails = stopDetails ?? new List<StopDetailData>();
 
-    public string Destination { get; } =
-        string.IsNullOrWhiteSpace(destination)
-            ? throw new ArgumentException("Пункт назначения не может быть пустым.", nameof(destination))
-            : destination;
+            Origin = string.IsNullOrWhiteSpace(origin)
+                ? throw new ArgumentException("Пункт отправления не может быть пустым.", nameof(origin))
+                : origin;
 
-    public string Source { get; } =
-        string.IsNullOrWhiteSpace(source)
-            ? throw new ArgumentException("Источник не может быть пустым.", nameof(source))
-            : source;
+            Destination = string.IsNullOrWhiteSpace(destination)
+                ? throw new ArgumentException("Пункт назначения не может быть пустым.", nameof(destination))
+                : destination;
 
-    public sealed record StopDetailData(string Airport, int DurationMinutes);
+            Source = string.IsNullOrWhiteSpace(source)
+                ? throw new ArgumentException("Источник не может быть пустым.", nameof(source))
+                : source;
+        }
+
+        public sealed class StopDetailData
+        {
+            public string Id { get; private set; }
+            public string Airport { get; private set; }
+            public int DurationMinutes { get; private set; }
+
+            protected StopDetailData()
+            { }
+
+            public StopDetailData(string airport, int durationMinutes)
+            {
+                Id = Guid.NewGuid().ToString();
+                Airport = airport;
+                DurationMinutes = durationMinutes;
+            }
+        }
+    }
 }

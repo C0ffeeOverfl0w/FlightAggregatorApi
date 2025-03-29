@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Cors;
-
-namespace FlightAggregator.Api.Controllers;
+﻿namespace FlightAggregator.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -34,7 +32,6 @@ public class FlightController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<FlightDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [EnableCors("AllowAll")]
     public async Task<IActionResult> GetFlights(
         [FromQuery] string origin,
         [FromQuery] string destination,

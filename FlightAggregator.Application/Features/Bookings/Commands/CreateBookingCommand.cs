@@ -1,7 +1,7 @@
 ﻿namespace FlightAggregator.Application.Features.Bookings.Commands;
 
 /// <summary>
-/// Команда для создания бронирования рейса.
+/// Команда для бронирования рейса.
 /// </summary>
 public record CreateBookingCommand(
     string FlightNumber,

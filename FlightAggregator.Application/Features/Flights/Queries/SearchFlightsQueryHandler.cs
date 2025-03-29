@@ -1,60 +1,36 @@
 ﻿namespace FlightAggregator.Application.Features.Flights.Queries;
 
 /// <summary>
-/// Обработчик запроса поиска авиарейсов, который использует композитный провайдер для агрегирования данных из нескольких источников,
-/// применяет сортировку и возвращает список FlightDto.
+/// Обработчик запроса поиска авиарейсов, который использует
+/// композитный провайдер для агрегирования данных из нескольких источников.
 /// </summary>
-public sealed class SearchFlightsQueryHandler : IRequestHandler<SearchFlightsQuery, IEnumerable<FlightDto>>
+public sealed class SearchFlightsQueryHandler(
+    IFlightProvider provider,
+    IMapper mapper,
+    IFlightFilterService filterService,
+    IFlightSortService sortService,
+    IValidator<SearchFlightsQuery> @object) : IRequestHandler<SearchFlightsQuery, IEnumerable<FlightDto>>
 {
-    private readonly IFlightProvider _compositeProvider;
+    private readonly IFlightProvider _provider = provider;
+    private readonly IMapper _mapper = mapper;
+    private readonly IFlightFilterService _filterService = filterService;
+    private readonly IFlightSortService _sortService = sortService;
 
-    public SearchFlightsQueryHandler(IFlightProvider compositeProvider, IValidator<SearchFlightsQuery> @object) =>
-        _compositeProvider = compositeProvider;
-
+    /// <summary>
+    /// Обрабатывает запрос на поиск авиарейсов.
+    /// </summary>
+    /// <param name="query">Запрос на поиск рейсов.</param>
+    /// <param name="cancellationToken">Токен отмены.</param>
+    /// <returns>Коллекция DTO объектов найденных рейсов.</returns>
     public async Task<IEnumerable<FlightDto>> Handle(SearchFlightsQuery query, CancellationToken cancellationToken)
     {
-        var flights = await _compositeProvider.GetFlightsAsync(
-            query.FlightNumber,
-            query.Origin,
-            query.Destination,
-            query.DepartureTime,
-            query.ArrivalTime,
-            query.Airline,
-            query.MaxPrice,
-            query.MaxStops,
-            query.Passengers,
-            query.PageNumber,
-            query.PageSize,
+        var flights = await _provider.GetFlightsAsync(query, cancellationToken);
 
-            cancellationToken);
+        var filteredFlights = _filterService.ApplyFilters(flights, query);
 
-        if (!string.IsNullOrWhiteSpace(query.SortBy))
-        {
-            flights = query.SortBy.ToLower() switch
-            {
-                "price" => query.SortOrder?.ToLower() == "desc"
-                    ? flights.OrderByDescending(f => f.Price.Amount)
-                    : flights.OrderBy(f => f.Price.Amount),
-                "date" => query.SortOrder?.ToLower() == "desc"
-                    ? flights.OrderByDescending(f => f.DepartureTime)
-                    : flights.OrderBy(f => f.DepartureTime),
-                _ => flights
-            };
-        }
+        var sortedFlights = _sortService.Sort(filteredFlights, query);
 
-        // Преобразуем доменные объекты Flight в DTO
-        var flightDtos = flights.Select(f => new FlightDto(
-            f.FlightNumber,
-            f.DepartureTime,
-            f.ArrivalTime,
-            f.Origin,
-            f.Destination,
-            f.DurationMinutes,
-            f.StopDetails.Select(sd => new StopDetailData(sd.Airport, sd.DurationMinutes)).ToList(),
-            f.Airline.Name,
-            f.Price.Amount,
-            f.Stops
-        ));
+        var flightDtos = _mapper.Map<IEnumerable<FlightDto>>(sortedFlights);
 
         return flightDtos;
     }

@@ -14,6 +14,10 @@ public static class InfrastructureServiceCollectionExtensions
     /// <exception cref="ArgumentNullException">Выбрасывается, если базовый URL для провайдеров не настроен.</exception>
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(connectionString));
+
         services.AddMemoryCache();
         var baseUrlA = configuration["FlightProviders:ProviderA:BaseUrl"];
         var baseUrlB = configuration["FlightProviders:ProviderB:BaseUrl"];
@@ -42,32 +46,42 @@ public static class InfrastructureServiceCollectionExtensions
         .AddPolicyHandler(GetRetryPolicy())
         .AddPolicyHandler(GetCircuitBreakerPolicy());
 
-        // Регистрация провайдеров с использованием именованных HTTP-клиентов
-        services.AddScoped<FakeFlightProviderA>(sp =>
+        // Регистрация провайдеров
+        services.AddScoped(sp =>
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-            var httpClient = httpClientFactory.CreateClient("ProviderA");
-            return new FakeFlightProviderA(httpClient);
-        });
+            var mapper = sp.GetRequiredService<IMapper>();
+            var client = httpClientFactory.CreateClient("ProviderA");
 
-        services.AddScoped<FakeFlightProviderB>(sp =>
+            return new FakeFlightProviderA(client, mapper);
+        });
+        services.AddScoped(sp =>
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-            var httpClient = httpClientFactory.CreateClient("ProviderB");
-            return new FakeFlightProviderB(httpClient);
+            var mapper = sp.GetRequiredService<IMapper>();
+            var client = httpClientFactory.CreateClient("ProviderB");
+            return new FakeFlightProviderB(client, mapper);
         });
 
-        // Регистрирация композитного провайдера
-        services.AddScoped<CompositeFlightProvider>(sp =>
+        services.AddScoped(sp =>
         {
-            var providerA = sp.GetRequiredService<FakeFlightProviderA>();
-            var providerB = sp.GetRequiredService<FakeFlightProviderB>();
-            return new CompositeFlightProvider([providerA, providerB]);
+            var strategies = new List<IFlightProvider>
+        {
+            sp.GetRequiredService<FakeFlightProviderA>(),
+            sp.GetRequiredService<FakeFlightProviderB>()
+        };
+            var logger = sp.GetRequiredService<ILogger<CombinedFlightProvider>>();
+
+            return new CombinedFlightProvider(strategies, logger);
         });
 
+        // Регистрация фабрики провайдеров
+        services.AddScoped<IFlightProviderFactory, FlightProviderFactory>();
+
+        // Регистрация кэширующего декоратора
         services.AddScoped<IFlightProvider>(sp =>
         {
-            var composite = sp.GetRequiredService<CompositeFlightProvider>();
+            var composite = sp.GetRequiredService<CombinedFlightProvider>();
             var cache = sp.GetRequiredService<IMemoryCache>();
             return new CachingFlightProvider(composite, cache);
         });

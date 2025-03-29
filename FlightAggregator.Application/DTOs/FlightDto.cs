@@ -5,7 +5,7 @@ public record FlightDto(string FlightNumber,
                         string Origin,
                         string Destination,
                         int DurationMinutes,
-                        List<StopDetailData> StopDetails,
+                        List<StopDetailDataDto> StopDetails,
                         string Airline,
                         decimal Price,
                         int Stops);

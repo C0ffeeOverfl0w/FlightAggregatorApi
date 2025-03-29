@@ -7,7 +7,6 @@ public class CachingFlightProviderTests
     {
         // Arrange
         var testFlight = new Flight(
-            id: "1",
             flightNumber: "FN123",
             departureTime: new DateTime(2025, 6, 15, 8, 30, 0),
             arrivalTime: new DateTime(2025, 6, 15, 10, 0, 0),

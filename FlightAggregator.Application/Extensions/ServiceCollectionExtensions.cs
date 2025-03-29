@@ -1,6 +1,4 @@
-﻿using FlightAggregator.Application.Behaviors;
-
-namespace FlightAggregator.Application.Extensions;
+﻿namespace FlightAggregator.Application.Extensions;
 
 public static class ServiceCollectionExtensions
 {
@@ -15,7 +13,18 @@ public static class ServiceCollectionExtensions
 
         services.AddValidatorsFromAssemblyContaining<SearchFlightsQueryValidator>();
 
+        services.AddAutoMapper(typeof(FlightProfile));
+        services.AddAutoMapper(typeof(ResponseToDomainProfile));
+
         services.AddScoped<BookingDomainService>();
+
+        // Регистрация фильтров
+        services.AddScoped<IFlightFilterService, FlightFilterService>();
+        services.AddScoped<IFlightFilter, OriginFilter>();
+        services.AddScoped<IFlightFilter, DestinationFilter>();
+        services.AddScoped<IFlightFilter, DateFilter>();
+
+        services.AddScoped<IFlightSortService, FlightSortService>();
 
         return services;
     }

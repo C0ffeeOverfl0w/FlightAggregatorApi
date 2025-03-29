@@ -6,16 +6,16 @@
 /// </summary>
 public record SearchFlightsQuery(
     string? FlightNumber,
-    string Origin,
-    string Destination,
-    DateTime? DepartureTime,
-    DateTime? ArrivalTime,
-    string? Airline,
-    decimal? MaxPrice,
-    int? MaxStops,
-    int Passengers,
-    string? SortBy,
-    string? SortOrder,
+    string? Origin = null,
+    string? Destination = null,
+    DateTime? DepartureTime = null,
+    DateTime? ArrivalTime = null,
+    string? Airline = null,
+    decimal? MaxPrice = null,
+    int? MaxStops = null,
+    int? Passengers = null,
+    string? SortBy = null,
+    string? SortOrder = null,
     int PageNumber = 1,
     int PageSize = 10
 ) : IRequest<IEnumerable<FlightDto>>;

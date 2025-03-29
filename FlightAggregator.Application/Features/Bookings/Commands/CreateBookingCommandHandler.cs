@@ -3,59 +3,41 @@
 /// <summary>
 /// Обработчик команды создания бронирования.
 /// </summary>
-public sealed class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, BookingResponse>
+public sealed class CreateBookingCommandHandler(
+    IFlightProvider flightProvider,
+    BookingDomainService bookingService,
+    IBookingRepository bookingRepository,
+    ILogger<CreateBookingCommandHandler> logger) : IRequestHandler<CreateBookingCommand, BookingResponse>
 {
-    private readonly IFlightProvider _flightProvider;
-    private readonly BookingDomainService _bookingService;
-    private readonly IBookingRepository _bookingRepository;
-    private readonly ILogger<CreateBookingCommandHandler> _logger;
-
-    public CreateBookingCommandHandler(
-        IFlightProvider flightProvider,
-        BookingDomainService bookingService,
-        IBookingRepository bookingRepository,
-        ILogger<CreateBookingCommandHandler> logger)
-    {
-        _flightProvider = flightProvider;
-        _bookingService = bookingService;
-        _bookingRepository = bookingRepository;
-        _logger = logger;
-    }
+    private readonly IFlightProvider _flightProvider = flightProvider;
+    private readonly BookingDomainService _bookingService = bookingService;
+    private readonly IBookingRepository _bookingRepository = bookingRepository;
+    private readonly ILogger<CreateBookingCommandHandler> _logger = logger;
 
     public async Task<BookingResponse> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
     {
         var requestId = Guid.NewGuid().ToString();
-        _logger.LogInformation("Начало обработки команды бронирования с ID {RequestId}: {@Request}", requestId, request);
+        _logger.LogInformation("Обработка команды бронирования с ID {RequestId}: {@Request}", requestId, request);
 
-        // Ищем рейс
-        var flights = await _flightProvider.GetFlightsAsync(
-            flightNumber: request.FlightNumber,
-            origin: "",
-            destination: "",
-            departureDate: null,
-            returnDate: null,
-            airline: null,
-            maxPrice: null,
-            maxStops: null,
-            passengers: 1,
-            pageNumber: 1,
-            pageSize: 1,
-            cancellationToken: cancellationToken);
-
-        var flight = flights.FirstOrDefault();
-        if (flight == null)
-        {
-            _logger.LogWarning("Рейс с номером {FlightNumber} не найден для запроса с ID {RequestId}", request.FlightNumber, requestId);
-            return new BookingResponse(null, request.FlightNumber, request.PassengerName, null, false, "Рейс не найден.");
-        }
+        var query = new SearchFlightsQuery(request.FlightNumber);
 
         try
         {
+            var flights = await _flightProvider.GetFlightsAsync(query, cancellationToken: cancellationToken);
+
+            var flight = flights.FirstOrDefault();
+
+            if (flight == null)
+            {
+                _logger.LogWarning("Рейс с номером {FlightNumber} не найден для запроса с ID {RequestId}", request.FlightNumber, requestId);
+                return new BookingResponse(null, request.FlightNumber, request.PassengerName, null, false, "Рейс не найден.");
+            }
+
             // Создаем бронирование через доменный сервис
             var booking = _bookingService.CreateBooking(flight, request.PassengerName, request.PassengerEmail);
 
             // Отправляем запрос на бронирование в источник
-            var bookingRequest = new IFlightProvider.BookingRequest(flight.FlightNumber, request.PassengerName);
+            var bookingRequest = new BookingRequest(flight.FlightNumber, request.PassengerName);
             var providerResponse = await _flightProvider.BookFlightAsync(bookingRequest, cancellationToken);
 
             if (!providerResponse.IsSuccess)

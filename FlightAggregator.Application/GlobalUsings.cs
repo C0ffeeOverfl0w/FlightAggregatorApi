@@ -1,6 +1,11 @@
 ﻿global using FlightAggregator.Application.Features.Flights.Queries;
+global using FlightAggregator.Application.Features.Flights.Filters;
+global using FlightAggregator.Application.MappingProfiles;
 global using Microsoft.Extensions.DependencyInjection;
 global using FlightAggregator.Application.Interfaces;
+global using FlightAggregator.Application.Behaviors;
+global using FlightAggregator.Application.Services;
+global using FlightAggregator.Domain.ValueObjects;
 global using FlightAggregator.Domain.Interfaces;
 global using FlightAggregator.Application.DTOs;
 global using FlightAggregator.Domain.Entities;
@@ -9,4 +14,5 @@ global using Microsoft.Extensions.Logging;
 global using System.Diagnostics;
 global using System.Reflection;
 global using FluentValidation;
+global using AutoMapper;
 global using MediatR;

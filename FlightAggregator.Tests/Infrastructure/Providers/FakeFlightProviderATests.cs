@@ -42,20 +42,10 @@ public class FakeFlightProviderATests
 
         var provider = new FakeFlightProviderA(httpClient);
 
+        var query = new SearchFlightsQuery(FlightNumber: null);
+
         // Act
-        var flights = await provider.GetFlightsAsync(
-            flightNumber: null,
-            origin: null,
-            destination: null,
-            departureTime: null,
-            arrivalTime: null,
-            airline: null,
-            maxPrice: null,
-            maxStops: null,
-            passengers: 1,
-            pageNumber: 1,
-            pageSize: 10,
-            CancellationToken.None);
+        var flights = await provider.GetFlightsAsync(query, CancellationToken.None);
 
         // Assert
         var flightList = flights.ToList();

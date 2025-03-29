@@ -4,8 +4,8 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "FlightProviders__ProviderA__BaseUrl": "https://fake-flight-provider.wiremockapi.cloud",
-        "FlightProviders__ProviderB__BaseUrl": "https://fake-flight-provider.wiremockapi.cloud"
+        "FlightProviders__ProviderA__BaseUrl": "https://fake-flight-provider-a.wiremockapi.cloud",
+        "FlightProviders__ProviderB__BaseUrl": "https://fake-flight-provider-b.wiremockapi.cloud"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5150"
@@ -14,8 +14,8 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "FlightProviders__ProviderA__BaseUrl": "https://fake-flight-provider.wiremockapi.cloud",
-        "FlightProviders__ProviderB__BaseUrl": "https://fake-flight-provider.wiremockapi.cloud"
+        "FlightProviders__ProviderA__BaseUrl": "https://fake-flight-provider-a.wiremockapi.cloud",
+        "FlightProviders__ProviderB__BaseUrl": "https://fake-flight-provider-b.wiremockapi.cloud"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7169;http://localhost:5150"

@@ -1,10 +1,8 @@
 ﻿namespace FlightAggregator.Domain.Entities;
 
-public class Airline(Guid id, string name)
+public record Airline(string Name)
 {
-    public Guid Id { get; } = id;
-
-    public string Name { get; } = string.IsNullOrWhiteSpace(name)
-        ? throw new ArgumentException("Название авиакомпании не может быть пустым.", nameof(name))
-        : name;
+    public string Name { get; } = string.IsNullOrWhiteSpace(Name)
+        ? throw new ArgumentException("Название авиакомпании не может быть пустым.", nameof(Name))
+        : Name;
 }

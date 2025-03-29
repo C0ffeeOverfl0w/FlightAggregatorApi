@@ -3,52 +3,28 @@
 /// <summary>
 /// Класс, представляющий бронирование.
 /// </summary>
-public class Booking(Flight flight, string passengerName, string passengerEmail)
+public class Booking
 {
-    /// <summary>
-    /// Уникальный идентификатор бронирования.
-    /// </summary>
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; private set; }
+    public Flight Flight { get; private set; }
+    public string PassengerName { get; private set; }
+    public string PassengerEmail { get; private set; }
+    public DateTime BookingDate { get; private set; }
 
-    /// <summary>
-    /// Рейс, связанный с бронированием.
-    /// </summary>
-    public Flight Flight { get; } =
-        flight ?? throw new ArgumentNullException(nameof(flight));
+    protected Booking()
+    { }
 
-    /// <summary>
-    /// Имя пассажира.
-    /// </summary>
-    public string PassengerName { get; } =
-        string.IsNullOrWhiteSpace(passengerName)
-            ? throw new ArgumentException("Имя пассажира обязательно.", nameof(passengerName))
-            : passengerName;
-
-    /// <summary>
-    /// Email пассажира.
-    /// </summary>
-    public string PassengerEmail { get; } =
-        string.IsNullOrWhiteSpace(passengerEmail)
-            ? throw new ArgumentException("Email пассажира обязателен.", nameof(passengerEmail))
-            : passengerEmail;
-
-    /// <summary>
-    /// Дата бронирования.
-    /// </summary>
-    public DateTime BookingDate { get; } = DateTime.UtcNow;
-
-    public BookingStatus Status { get; private set; } = BookingStatus.Active;
-
-    public void Cancel()
+    public Booking(Flight flight, string passengerName, string passengerEmail)
     {
-        if (Status == BookingStatus.Cancelled)
-            throw new InvalidOperationException("Бронирование уже отменено.");
-        Status = BookingStatus.Cancelled;
-    }
+        Flight = flight ?? throw new ArgumentNullException(nameof(flight));
+        if (string.IsNullOrWhiteSpace(passengerName))
+            throw new ArgumentException("Имя пассажира не может быть пустым.", nameof(passengerName));
+        if (string.IsNullOrWhiteSpace(passengerEmail))
+            throw new ArgumentException("Email пассажира не может быть пустым.", nameof(passengerEmail));
 
-    public enum BookingStatus
-    {
-        Active,
-        Cancelled
+        Id = Guid.NewGuid();
+        PassengerName = passengerName;
+        PassengerEmail = passengerEmail;
+        BookingDate = DateTime.UtcNow;
     }
 }
