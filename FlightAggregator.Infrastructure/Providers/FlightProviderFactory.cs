@@ -3,10 +3,10 @@
 /// <inheritdoc/>
 internal class FlightProviderFactory(
     IEnumerable<IFlightProvider> providers,
-    ILogger<FlightProviderFactory> logger) : IFlightProviderFactory
+    ILoggerFactory loggerFactory) : IFlightProviderFactory
 {
     private readonly IEnumerable<IFlightProvider> _providers = providers;
-    private readonly ILogger<FlightProviderFactory> _logger = logger;
+    private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
     /// <inheritdoc/>
     public IFlightProvider GetPrоvider(string providerName)
@@ -22,11 +22,19 @@ internal class FlightProviderFactory(
         });
 
         if (provider == null)
+        {
+            var logger = _loggerFactory.CreateLogger<FlightProviderFactory>();
+            logger.LogWarning("Провайдер {ProviderName} не найден", providerName);
             throw new ArgumentException($"Стратегия для провайдера '{providerName}' не найдена.");
+        }
 
         return provider;
     }
 
     /// <inheritdoc/>
-    public IFlightProvider GetAllProviders() => new CombinedFlightProvider(_providers, _logger);
+    public IFlightProvider GetAllProviders()
+    {
+        var logger = _loggerFactory.CreateLogger<CombinedFlightProvider>();
+        return new CombinedFlightProvider(_providers, logger);
+    }
 }

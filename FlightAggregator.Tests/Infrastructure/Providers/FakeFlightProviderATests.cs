@@ -2,10 +2,18 @@
 
 public class FakeFlightProviderATests
 {
-    [Fact]
-    public async Task GetFlightsAsync_RetriesOnTransientFailures_ReturnsFlight()
+    private readonly Mock<IMapper> _mapperMock = new Mock<IMapper>();
+    private readonly Mock<ILogger<FakeFlightProviderA>> _loggerMock = new Mock<ILogger<FakeFlightProviderA>>();
+
+    public FakeFlightProviderATests()
     {
-        // Arrange
+        _mapperMock = (Mock<IMapper>)_mapperMock.Object;
+    }
+
+    [Fact]
+    public async Task GetFlightsAsync_RetriesOnServerError_ReturnsFlight()
+    {
+        // Arrange: возвращаем валидный JSON после двух "сбоев"
         var testHandler = new TestHttpMessageHandler(() =>
         {
             return "[ { " +
@@ -24,12 +32,11 @@ public class FakeFlightProviderATests
                    " } ]";
         });
 
-        // Создаем политику retry: 3 попытки с короткой задержкой (10 мс)
-        var retryPolicy = HttpPolicyExtensions
-            .HandleTransientHttpError()
+        // Ретрай на 500 и т.п.
+        var retryPolicy = Policy
+            .HandleResult<HttpResponseMessage>(r => (int)r.StatusCode >= 500)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromMilliseconds(10));
 
-        // Оборачиваем тестовый handler в PolicyHttpMessageHandler
         var policyHandler = new PolicyHttpMessageHandler(retryPolicy)
         {
             InnerHandler = testHandler
@@ -40,8 +47,27 @@ public class FakeFlightProviderATests
             BaseAddress = new Uri("https://fake-flight-provider.wiremockapi.cloud")
         };
 
-        var provider = new FakeFlightProviderA(httpClient);
+        // Мокаем маппер: просто возвращаем фиктивный список из одного Flight
+        _mapperMock
+            .Setup(m => m.Map<IEnumerable<Flight>>(It.IsAny<IEnumerable<object>>()))
+            .Returns(new List<Flight>
+            {
+                new Flight(
+                    flightNumber: "AB123",
+                    departureTime: DateTime.UtcNow.AddHours(1),
+                    arrivalTime: DateTime.UtcNow.AddHours(2),
+                    durationMinutes: 120,
+                    airline: new Airline("Test Airline"),
+                    price: new Money(100),
+                    stops: 0,
+                    stopDetails: new List<Flight.StopDetailData>(),
+                    origin: "Москва",
+                    destination: "Санкт-Петербург",
+                    source: "source1"
+                )
+            });
 
+        var provider = new FakeFlightProviderA(httpClient, _mapperMock.Object, _loggerMock.Object);
         var query = new SearchFlightsQuery(FlightNumber: null);
 
         // Act
@@ -51,7 +77,6 @@ public class FakeFlightProviderATests
         var flightList = flights.ToList();
         Assert.Single(flightList);
         Assert.Equal("AB123", flightList[0].FlightNumber);
-        // Ожидаем, что тестовый handler был вызван 3 раза (2 сбоя + 1 успешный вызов)
-        Assert.Equal(3, testHandler.CallCount);
+        Assert.Equal(3, testHandler.CallCount); // 2 фейла + 1 успех
     }
 }

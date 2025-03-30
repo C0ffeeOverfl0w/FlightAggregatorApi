@@ -3,17 +3,17 @@
 /// <summary>
 /// Middleware для обработки исключений в приложении.
 /// </summary>
-public class ExceptionHandlingMiddleware
+public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
     /// <summary>
-    /// Инициализирует новый экземпляр класса <see cref="ExceptionHandlingMiddleware"/>.
+    /// Инициализирует новый экземпляр класса <see cref="GlobalExceptionMiddleware"/>.
     /// </summary>
     /// <param name="next">Делегат запроса.</param>
     /// <param name="logger">Экземпляр логгера.</param>
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;

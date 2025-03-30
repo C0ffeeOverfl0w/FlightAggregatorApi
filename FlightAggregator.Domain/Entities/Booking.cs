@@ -5,11 +5,14 @@
 /// </summary>
 public class Booking
 {
-    public Guid Id { get; private set; }
-    public Flight Flight { get; private set; }
-    public string PassengerName { get; private set; }
-    public string PassengerEmail { get; private set; }
-    public DateTime BookingDate { get; private set; }
+    public Guid? Id { get; private set; }
+    public string? FlightId { get; private set; }
+    public string? FlightNumber { get; private set; }
+    public string? PassengerName { get; private set; }
+    public string? PassengerEmail { get; private set; }
+    public DateTime? BookingDate { get; private set; }
+
+    public virtual Flight? Flight { get; private set; }
 
     protected Booking()
     { }

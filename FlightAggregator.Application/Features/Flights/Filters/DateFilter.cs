@@ -9,6 +9,6 @@ public class DateFilter : IFlightFilter
     public bool IsSatisfiedBy(Flight flight, SearchFlightsQuery query)
     {
         return !query.DepartureTime.HasValue ||
-               flight.DepartureTime.Date == query.DepartureTime.Value.Date;
+               flight.DepartureTime?.Date == query.DepartureTime.Value.Date;
     }
 }

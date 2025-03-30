@@ -12,23 +12,21 @@
     {
         _callCount++;
 
-        // На первых двух вызовах имитируем InternalServerError (500)
+        // На первых двух вызовах возвращаем 500 (имитация транзиентной ошибки)
         if (_callCount < 3)
         {
-            var errorResponse = new HttpResponseMessage(HttpStatusCode.InternalServerError)
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError)
             {
                 Content = new StringContent("Transient error")
-            };
-            return Task.FromResult(errorResponse);
+            });
         }
 
-        // На третьем вызове возвращаем успешный ответ
-        var json = _responseFactory(); // Используем то, что передали в конструктор
-        var successResponse = new HttpResponseMessage(HttpStatusCode.OK)
+        // На третьем вызове — успешный ответ
+        var json = _responseFactory();
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent(json, Encoding.UTF8, "application/json")
-        };
-        return Task.FromResult(successResponse);
+        });
     }
 
     public int CallCount => _callCount;

@@ -8,7 +8,7 @@ public class ResponseToDomainProfile : Profile
 
         CreateMap<FlightDto, Flight>()
             .ForMember(dest => dest.Airline,
-                opt => opt.MapFrom(src => src.Airline))
+                opt => opt.MapFrom(src => new Airline(null, src.Airline)))
             .ForMember(dest => dest.Price,
                 opt => opt.MapFrom(src => new Money(src.Price, "USD")))
             .ForMember(dest => dest.StopDetails,

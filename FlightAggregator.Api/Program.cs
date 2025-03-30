@@ -1,45 +1,24 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using FlightAggregator.Api.Extensions;
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} (Thread: {ThreadId}) {NewLine}{Exception}")
-    .CreateLogger();
+var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog();
+builder.Host.AddSerilogLogging();
 
 builder.Services.AddApplicationServices();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+builder.Services.AddSwaggerDocumentation();
+
+builder.Services.AddCorsPolicy();
 
 builder.Services.AddControllers();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Flight Aggregator API",
-        Version = "v1",
-        Description = "API для поиска и бронирования авиарейсов."
-    });
-});
-
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -49,6 +28,12 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Flight Aggregator API v1");
     });
 }
+
+app.UseAuthentication();
+
+app.UseAuthorization();
+
+app.UseCorsPolicy();
 
 app.UseHttpsRedirection();
 

@@ -4,13 +4,19 @@ public class SearchFlightsQueryHandlerTests
 {
     private readonly Mock<IFlightProvider> _flightProviderMock;
     private readonly Mock<IValidator<SearchFlightsQuery>> _validatorMock;
+    private readonly Mock<IFlightFilterService> _filterService;
+    private readonly Mock<IFlightSortService> _sortServiceMock;
+    private readonly Mock<IMapper> _mapperMock;
     private readonly SearchFlightsQueryHandler _handler;
 
     public SearchFlightsQueryHandlerTests()
     {
         _flightProviderMock = new Mock<IFlightProvider>();
+        _filterService = new Mock<IFlightFilterService>();
         _validatorMock = new Mock<IValidator<SearchFlightsQuery>>();
-        _handler = new SearchFlightsQueryHandler(_flightProviderMock.Object, _validatorMock.Object);
+        _sortServiceMock = new Mock<IFlightSortService>();
+        _mapperMock = new Mock<IMapper>();
+        _handler = new SearchFlightsQueryHandler(_flightProviderMock.Object, _mapperMock.Object, _filterService.Object, _sortServiceMock.Object, _validatorMock.Object);
     }
 
     [Fact]
@@ -34,11 +40,13 @@ public class SearchFlightsQueryHandlerTests
             PageSize: 10
         );
         var flights = new List<Flight>
-        {
-            new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(Guid.NewGuid(), "Airline1"), new Money(100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
-            new Flight("FN124", DateTime.Now, DateTime.Now.AddHours(3), 180, new Airline(Guid.NewGuid(), "Airline2"), new Money(200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
-        };
-        _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<decimal?>(), It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(flights);
+                {
+                    new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(null, "Airline1"), new Money(100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
+                    new Flight("FN124", DateTime.Now, DateTime.Now.AddHours(3), 180, new Airline(null, "Airline2"), new Money(200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
+                };
+
+        _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<SearchFlightsQuery>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(flights);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
@@ -70,11 +78,11 @@ public class SearchFlightsQueryHandlerTests
             PageSize: 10
         );
         var flights = new List<Flight>
-        {
-            new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(Guid.NewGuid(), "Airline1"), new Money (100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
-            new Flight("FN124", DateTime.Now.AddHours(1), DateTime.Now.AddHours(1).AddHours(3), 180, new Airline(Guid.NewGuid(), "Airline2"), new Money (200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
-        };
-        _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<string>(), It.IsAny<decimal?>(), It.IsAny<int?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(flights);
+                {
+                    new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(null, "Airline1"), new Money (100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
+                    new Flight("FN124", DateTime.Now.AddHours(1), DateTime.Now.AddHours(1).AddHours(3), 180, new Airline(null, "Airline2"), new Money (200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
+                };
+        _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<SearchFlightsQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(flights);
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);

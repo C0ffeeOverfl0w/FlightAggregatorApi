@@ -1,4 +1,6 @@
-﻿namespace FlightAggregator.Api.Controllers;
+﻿using Microsoft.AspNetCore.Authorization;
+
+namespace FlightAggregator.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -19,6 +21,7 @@ public sealed class BookingController : ControllerBase
     /// <param name="request">Данные бронирования.</param>
     /// <param name="cancellationToken">Токен отмены запроса.</param>
     /// <returns>Подтверждение бронирования.</returns>
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateBooking(
         [FromBody] CreateBookingCommand request,

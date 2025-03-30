@@ -1,10 +1,12 @@
 ﻿namespace FlightAggregator.Infrastructure.Providers;
 
 /// <inheritdoc/>
-public class CombinedFlightProvider(IEnumerable<IFlightProvider> providers, ILogger logger) : IFlightProvider
+public class CombinedFlightProvider(
+    IEnumerable<IFlightProvider> providers,
+    ILogger<CombinedFlightProvider> logger) : IFlightProvider
 {
     private readonly IEnumerable<IFlightProvider> _providers = providers;
-    private readonly ILogger _logger = logger;
+    private readonly ILogger<CombinedFlightProvider> _logger = logger;
 
     /// <inheritdoc/>
     public async Task<IEnumerable<Flight>> GetFlightsAsync(SearchFlightsQuery query, CancellationToken cancellationToken)

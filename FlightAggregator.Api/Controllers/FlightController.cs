@@ -1,4 +1,6 @@
-﻿namespace FlightAggregator.Api.Controllers;
+﻿using Microsoft.AspNetCore.Authorization;
+
+namespace FlightAggregator.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -28,6 +30,7 @@ public class FlightController : ControllerBase
     /// <param name="sortOrder">Порядок сортировки (asc или desc).</param>
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Список найденных рейсов.</returns>
+    [Authorize]
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<FlightDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -11,7 +11,7 @@ public class CachingFlightProviderTests
             departureTime: new DateTime(2025, 6, 15, 8, 30, 0),
             arrivalTime: new DateTime(2025, 6, 15, 10, 0, 0),
             durationMinutes: 90,
-            airline: new Airline(Guid.NewGuid(), "Аэрофлот"),
+            airline: new Airline(null, "Аэрофлот"),
             price: new Money(5600, "USD"),
             stops: 0,
             stopDetails: new List<Flight.StopDetailData>(),
@@ -23,17 +23,7 @@ public class CachingFlightProviderTests
 
         var mockInner = new Mock<IFlightProvider>();
         mockInner.Setup(x => x.GetFlightsAsync(
-            It.IsAny<string?>(),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<DateTime?>(),
-            It.IsAny<DateTime?>(),
-            It.IsAny<string?>(),
-            It.IsAny<decimal?>(),
-            It.IsAny<int?>(),
-            It.IsAny<int>(),
-            It.IsAny<int>(),
-            It.IsAny<int>(),
+            It.IsAny<SearchFlightsQuery>(),
             It.IsAny<CancellationToken>()
         )).ReturnsAsync(flightList);
 
@@ -42,36 +32,36 @@ public class CachingFlightProviderTests
 
         var cachingProvider = new CachingFlightProvider(mockInner.Object, memoryCache);
 
-        string? flightNumber = null;
-        string origin = "Москва (SVO)";
-        string destination = "Санкт-Петербург (LED)";
-        DateTime? departureTime = new DateTime(2025, 6, 15, 8, 30, 0);
-        DateTime? arrivalTime = new DateTime(2025, 6, 15, 10, 0, 0);
-        string? airline = null;
-        decimal? maxPrice = null;
-        int? maxStops = null;
-        int passengers = 1;
-        int pageNumber = 1;
-        int pageSize = 10;
+        var query = new SearchFlightsQuery(
+            FlightNumber: null,
+            Origin: "Москва (SVO)",
+            Destination: "Санкт-Петербург (LED)",
+            DepartureTime: new DateTime(2025, 6, 15, 8, 30, 0),
+            ArrivalTime: new DateTime(2025, 6, 15, 10, 0, 0),
+            Airline: null,
+            MaxPrice: null,
+            MaxStops: null,
+            Passengers: 1,
+            SortBy: null,
+            SortOrder: null,
+            PageNumber: 1,
+            PageSize: 10
+        );
 
         // Act: Первый вызов – кэш не заполнен, внутренний провайдер должен быть вызван
         var result1 = await cachingProvider.GetFlightsAsync(
-            flightNumber, origin, destination, departureTime, arrivalTime,
-            airline, maxPrice, maxStops, passengers, pageNumber, pageSize, CancellationToken.None);
+            query, CancellationToken.None);
 
         // Act: Второй вызов – результат должен быть взят из кэша
         var result2 = await cachingProvider.GetFlightsAsync(
-            flightNumber, origin, destination, departureTime, arrivalTime,
-            airline, maxPrice, maxStops, passengers, pageNumber, pageSize, CancellationToken.None);
+            query, CancellationToken.None);
 
         // Assert: Результаты должны совпадать
         Assert.Equal(result1, result2);
 
         // Assert
         mockInner.Verify(x => x.GetFlightsAsync(
-            flightNumber, origin, destination, departureTime, arrivalTime,
-            airline, maxPrice, maxStops, passengers, pageNumber, pageSize,
-            It.IsAny<CancellationToken>()),
+            query, It.IsAny<CancellationToken>()),
             Times.Once());
     }
 }

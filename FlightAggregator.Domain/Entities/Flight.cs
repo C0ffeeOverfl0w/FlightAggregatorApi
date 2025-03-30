@@ -2,35 +2,35 @@
 {
     public class Flight
     {
-        public string Id { get; private set; }
-        public string FlightNumber { get; private set; }
-        public DateTime DepartureTime { get; private set; }
-        public DateTime ArrivalTime { get; private set; }
-        public int DurationMinutes { get; private set; }
-        public Airline Airline { get; private set; }
-        public Money Price { get; private set; }
-        public int Stops { get; private set; }
-        public List<StopDetailData> StopDetails { get; private set; }
-        public string Origin { get; private set; }
-        public string Destination { get; private set; }
-        public string Source { get; private set; }
+        public string? Id { get; private set; }
+        public string? FlightNumber { get; private set; }
+        public DateTime? DepartureTime { get; private set; }
+        public DateTime? ArrivalTime { get; private set; }
+        public int? DurationMinutes { get; private set; }
+        public Airline? Airline { get; private set; }
+        public Money? Price { get; private set; }
+        public int? Stops { get; private set; }
+        public List<StopDetailData>? StopDetails { get; private set; }
+        public string? Origin { get; private set; }
+        public string? Destination { get; private set; }
+        public string? Source { get; private set; }
 
-        protected Flight()
+        public Flight()
         {
         }
 
         public Flight(
             string flightNumber,
-            DateTime departureTime,
-            DateTime arrivalTime,
-            int durationMinutes,
-            Airline airline,
-            Money price,
-            int stops,
-            List<StopDetailData> stopDetails,
-            string origin,
-            string destination,
-            string source
+            DateTime? departureTime,
+            DateTime? arrivalTime,
+            int? durationMinutes,
+            Airline? airline,
+            Money? price,
+            int? stops,
+            List<StopDetailData>? stopDetails,
+            string? origin,
+            string? destination,
+            string? source
         )
         {
             Id = Guid.NewGuid().ToString(); // Или можно передавать извне, или генерировать в БД
@@ -77,11 +77,11 @@
 
         public sealed class StopDetailData
         {
-            public string Id { get; private set; }
-            public string Airport { get; private set; }
-            public int DurationMinutes { get; private set; }
+            public string? Id { get; private set; }
+            public string? Airport { get; private set; }
+            public int? DurationMinutes { get; private set; }
 
-            protected StopDetailData()
+            public StopDetailData()
             { }
 
             public StopDetailData(string airport, int durationMinutes)
