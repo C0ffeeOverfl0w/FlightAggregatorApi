@@ -12,6 +12,7 @@ global using FlightAggregator.Api.Extensions;
 global using Microsoft.IdentityModel.Tokens;
 global using Microsoft.OpenApi.Models;
 global using Microsoft.AspNetCore.Mvc;
+global using System.Reflection;
 global using FluentValidation;
 global using Serilog.Context;
 global using System.Text;

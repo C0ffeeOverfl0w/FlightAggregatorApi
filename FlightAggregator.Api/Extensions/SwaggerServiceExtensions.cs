@@ -19,8 +19,17 @@ public static class SwaggerServiceExtensions
             {
                 Title = "Flight Aggregator API",
                 Version = "v1",
-                Description = "API для поиска и бронирования авиарейсов."
+                Description = "API для поиска и бронирования авиарейсов.",
+                Contact = new OpenApiContact
+                {
+                    Name = "Сергей Королёв",
+                    Email = "gospodinkorolev@gmail.com"
+                }
             });
+
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            options.IncludeXmlComments(xmlPath);
 
             // Схема безопасности JWT Bearer
             var jwtSecurityScheme = new OpenApiSecurityScheme
