@@ -12,7 +12,7 @@ public class CachingFlightProviderTests
             arrivalTime: new DateTime(2025, 6, 15, 10, 0, 0),
             durationMinutes: 90,
             airline: new Airline(null, "Аэрофлот"),
-            price: new Money(5600, "USD"),
+            price: new Money(5600, "RUB"),
             stops: 0,
             stopDetails: new List<Flight.StopDetailData>(),
             origin: "Москва (SVO)",

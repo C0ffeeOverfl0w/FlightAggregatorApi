@@ -8,6 +8,7 @@ global using FlightAggregator.Infrastructure.Logging;
 global using Microsoft.AspNetCore.Authorization;
 global using FlightAggregator.Application.DTOs;
 global using FlightAggregator.Api.Middleware;
+global using FlightAggregator.Api.Extensions;
 global using Microsoft.IdentityModel.Tokens;
 global using Microsoft.OpenApi.Models;
 global using Microsoft.AspNetCore.Mvc;

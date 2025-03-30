@@ -41,8 +41,8 @@ public class SearchFlightsQueryHandlerTests
         );
         var flights = new List<Flight>
                 {
-                    new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(null, "Airline1"), new Money(100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
-                    new Flight("FN124", DateTime.Now, DateTime.Now.AddHours(3), 180, new Airline(null, "Airline2"), new Money(200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
+                    new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(null, "Airline1"), new Money(100, "RUB"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
+                    new Flight("FN124", DateTime.Now, DateTime.Now.AddHours(3), 180, new Airline(null, "Airline2"), new Money(200, "RUB"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
                 };
 
         _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<SearchFlightsQuery>(), It.IsAny<CancellationToken>()))
@@ -79,8 +79,8 @@ public class SearchFlightsQueryHandlerTests
         );
         var flights = new List<Flight>
                 {
-                    new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(null, "Airline1"), new Money (100, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
-                    new Flight("FN124", DateTime.Now.AddHours(1), DateTime.Now.AddHours(1).AddHours(3), 180, new Airline(null, "Airline2"), new Money (200, "USD"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
+                    new Flight("FN123", DateTime.Now, DateTime.Now.AddHours(2), 120, new Airline(null, "Airline1"), new Money (100, "RUB"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source"),
+                    new Flight("FN124", DateTime.Now.AddHours(1), DateTime.Now.AddHours(1).AddHours(3), 180, new Airline(null, "Airline2"), new Money (200, "RUB"), 0, new List<Flight.StopDetailData>(), "Origin", "Destination", "Source")
                 };
         _flightProviderMock.Setup(x => x.GetFlightsAsync(It.IsAny<SearchFlightsQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(flights);
 

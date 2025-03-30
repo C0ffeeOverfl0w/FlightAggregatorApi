@@ -3,6 +3,7 @@ global using FlightAggregator.Application.Features.Flights.Filters;
 global using FlightAggregator.Application.MappingProfiles;
 global using Microsoft.Extensions.DependencyInjection;
 global using FlightAggregator.Application.Interfaces;
+global using FlightAggregator.Application.Validators;
 global using FlightAggregator.Application.Behaviors;
 global using FlightAggregator.Application.Services;
 global using FlightAggregator.Domain.ValueObjects;

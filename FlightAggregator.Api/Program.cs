@@ -1,4 +1,4 @@
-﻿using FlightAggregator.Api.Extensions;
+﻿using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +15,8 @@ builder.Services.AddSwaggerDocumentation();
 builder.Services.AddCorsPolicy();
 
 builder.Services.AddControllers();
+
+builder.Services.AddFluentValidationAutoValidation();
 
 var app = builder.Build();
 

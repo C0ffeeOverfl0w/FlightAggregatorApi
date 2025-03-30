@@ -9,7 +9,7 @@ public sealed record Money(decimal Amount, string Currency)
     /// Инициализирует новый экземпляр записи <see cref="Money"/> с указанной суммой и валютой по умолчанию USD.
     /// </summary>
     /// <param name="amount">Сумма денег.</param>
-    public Money(decimal amount) : this(amount, "USD") { }
+    public Money(decimal amount) : this(amount, "RUB") { }
 
     /// <summary>
     /// Добавляет указанную сумму <see cref="Money"/> к текущему экземпляру.

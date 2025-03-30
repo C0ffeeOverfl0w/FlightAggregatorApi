@@ -4,6 +4,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        // MediatR и pipeline behaviors
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
@@ -11,20 +12,24 @@ public static class ServiceCollectionExtensions
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         });
 
-        services.AddValidatorsFromAssemblyContaining<SearchFlightsQueryValidator>();
+        // Все валидаторы из сборки
+        services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
+        // AutoMapper-профили
         services.AddAutoMapper(typeof(FlightProfile));
         services.AddAutoMapper(typeof(ResponseToDomainProfile));
 
+        // Доменные сервисы
         services.AddScoped<BookingDomainService>();
 
-        // Регистрация фильтров
+        // Сервисы фильтрации и сортировки
         services.AddScoped<IFlightFilterService, FlightFilterService>();
+        services.AddScoped<IFlightSortService, FlightSortService>();
+
+        // Отдельные фильтры
         services.AddScoped<IFlightFilter, OriginFilter>();
         services.AddScoped<IFlightFilter, DestinationFilter>();
         services.AddScoped<IFlightFilter, DateFilter>();
-
-        services.AddScoped<IFlightSortService, FlightSortService>();
 
         return services;
     }
