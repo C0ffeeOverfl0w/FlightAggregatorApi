@@ -101,7 +101,7 @@ docker run -p 5000:80 flight-aggregator
 Для имитации внешних провайдеров рейсов используются тестовые API, размещённые на [Wiremock Cloud](https://wiremock.cloud).
 
 Проект развернут на Render:
-[🌐 Swagger UI (если открыт)](https://your-render-app.onrender.com/swagger)
+[🌐 Swagger UI (если открыт)](https://flight-aggregator.onrender.com/swagger)
 
 > Настрой переменные окружения:
 
